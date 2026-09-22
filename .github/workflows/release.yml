@@ -14,6 +14,19 @@ jobs:
           distribution: temurin
           java-version: '21'
       - uses: gradle/actions/setup-gradle@v4
+
+      # The tag decides nothing on its own: publishPlugin uploads whatever
+      # pluginVersion says, so a mismatch would quietly ship the wrong version.
+      - name: Check the tag matches the plugin version
+        run: |
+          tagged="${GITHUB_REF_NAME#v}"
+          declared=$(sed -n 's/^pluginVersion *= *//p' gradle.properties | tr -d '[:space:]')
+          if [ "$tagged" != "$declared" ]; then
+            echo "tag $GITHUB_REF_NAME does not match pluginVersion $declared" >&2
+            exit 1
+          fi
+
+      - run: ./gradlew test verifyPlugin
       - run: ./gradlew publishPlugin
         env:
           PUBLISH_TOKEN: ${{ secrets.JETBRAINS_MARKETPLACE_TOKEN }}
