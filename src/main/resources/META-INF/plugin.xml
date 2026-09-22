@@ -47,6 +47,9 @@
     ]]></description>
 
     <change-notes><![CDATA[
+        <h3>0.1.1</h3>
+        <p>The plugin is named Lerd rather than lerd, everywhere the IDE shows it.</p>
+
         <h3>0.1.0</h3>
         <p>First release.</p>
         <ul>
