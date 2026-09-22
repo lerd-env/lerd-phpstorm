@@ -17,6 +17,7 @@ import com.intellij.util.ui.JBUI
 import sh.lerd.ide.LerdIcons
 import sh.lerd.ide.actions.SiteAction
 import sh.lerd.ide.api.LerdResult
+import sh.lerd.ide.services.TerminalLauncher
 import sh.lerd.ide.site.LerdSiteService
 import java.awt.BorderLayout
 import javax.swing.Icon
@@ -24,56 +25,58 @@ import javax.swing.JComponent
 import javax.swing.JPanel
 
 /**
- * Puts the site's moving parts in the IDE's Services window, beside Docker and
- * the databases: the PHP runtime serving it, its workers, and the services it
- * uses, each startable where the IDE already keeps such things.
+ * Puts the site's containers in the IDE's Services window, beside Docker and
+ * the databases, which is where a container people want a shell into belongs.
  *
- * The list is read from the same project service every other surface reads, so
- * the Services window can never disagree with the tool window.
+ * Only containers: the one serving the site and one per service it uses. The
+ * workers are systemd units with nothing to enter, and live on the Site tab.
  */
-class LerdServiceViewContributor : ServiceViewContributor<SiteRuntime> {
+class LerdServiceViewContributor : ServiceViewContributor<SiteContainer> {
 
     override fun getViewDescriptor(project: Project): ServiceViewDescriptor =
         SimpleServiceViewDescriptor("Lerd", LerdIcons.ToolWindow)
 
-    override fun getServices(project: Project): List<SiteRuntime> {
+    override fun getServices(project: Project): List<SiteContainer> {
         val state = LerdSiteService.getInstance(project).state
         val site = state.site ?: return emptyList()
         if (!state.daemonReachable) return emptyList()
-        return SiteRuntimes.of(site, servicesOf(project))
+        return SiteContainers.of(site, servicesOf(project))
     }
 
-    override fun getServiceDescriptor(project: Project, service: SiteRuntime): ServiceViewDescriptor =
-        RuntimeDescriptor(project, service)
+    override fun getServiceDescriptor(project: Project, service: SiteContainer): ServiceViewDescriptor =
+        ContainerDescriptor(project, service)
 
     /**
-     * The service list is only needed to colour the rows, so a failure here
-     * leaves them uncoloured rather than emptying the node.
+     * The service list only fills in versions and ports, so a failure here
+     * leaves the rows plainer rather than emptying the node.
      */
     private fun servicesOf(project: Project) =
         (LerdSiteService.getInstance(project).client().services() as? LerdResult.Ok)?.value.orEmpty()
 
-    private class RuntimeDescriptor(
+    private class ContainerDescriptor(
         private val project: Project,
-        private val runtime: SiteRuntime,
+        private val entry: SiteContainer,
     ) : ServiceViewDescriptor {
 
         override fun getPresentation(): ItemPresentation = object : ItemPresentation {
-            override fun getPresentableText(): String = runtime.name
-            override fun getLocationString(): String = runtime.detail
-            override fun getIcon(unused: Boolean): Icon = icon()
+            override fun getPresentableText(): String = entry.name
+            override fun getLocationString(): String = entry.detail
+            override fun getIcon(unused: Boolean): Icon =
+                if (entry.running) AllIcons.RunConfigurations.TestState.Run else AllIcons.RunConfigurations.TestIgnored
         }
 
-        override fun getId(): String = "${runtime.kind}:${runtime.name}"
+        override fun getId(): String = entry.container
 
         override fun getContentComponent(): JComponent = JPanel(BorderLayout()).apply {
             border = JBUI.Borders.empty(12, 16)
             add(
                 JBLabel(
                     buildString {
-                        append("<html><b>").append(runtime.name).append("</b><br>")
-                        append(state()).append("<br>")
-                        if (runtime.detail.isNotBlank()) append(runtime.detail)
+                        append("<html><b>").append(entry.name).append("</b><br>")
+                        append(entry.container).append("<br>")
+                        append(if (entry.running) "running" else "stopped")
+                        if (entry.detail.isNotBlank()) append("<br>").append(entry.detail)
+                        entry.connectionUrl?.let { append("<br>").append(it) }
                         append("</html>")
                     },
                 ),
@@ -87,43 +90,52 @@ class LerdServiceViewContributor : ServiceViewContributor<SiteRuntime> {
 
         private fun actions(): ActionGroup {
             val group = DefaultActionGroup()
-            if (runtime.running) {
-                runtime.stopAction?.let { group.add(action("Stop", AllIcons.Actions.Suspend, it)) }
-                if (runtime.kind == SiteRuntime.Kind.RUNTIME) {
-                    group.add(action("Restart", AllIcons.Actions.Restart, "restart"))
-                }
-            } else {
-                runtime.startAction?.let { group.add(action("Start", AllIcons.Actions.Execute, it)) }
+            if (entry.running) {
+                group.add(
+                    action("Open Terminal", AllIcons.Debugger.Console) {
+                        TerminalLauncher.run(project, entry.name, entry.shellCommand, sitePath())
+                    },
+                )
+                group.add(
+                    action("Follow Log", AllIcons.Debugger.Db_set_breakpoint) {
+                        TerminalLauncher.run(project, "${entry.name} log", entry.logsCommand, sitePath())
+                    },
+                )
+                group.addSeparator()
             }
+            group.add(lifecycle())
             return group
         }
 
-        private fun action(text: String, icon: Icon, verb: String): AnAction =
+        private fun lifecycle(): AnAction = when (entry.kind) {
+            SiteContainer.Kind.RUNTIME ->
+                if (entry.running) {
+                    action("Restart", AllIcons.Actions.Restart) { SiteAction.run(project, "restart") }
+                } else {
+                    action("Start", AllIcons.Actions.Execute) { SiteAction.run(project, "restart") }
+                }
+
+            SiteContainer.Kind.SERVICE ->
+                if (entry.running) {
+                    action("Stop", AllIcons.Actions.Suspend) { service("stop") }
+                } else {
+                    action("Start", AllIcons.Actions.Execute) { service("start") }
+                }
+        }
+
+        private fun service(verb: String) {
+            AppExecutorUtil.getAppExecutorService().execute {
+                LerdSiteService.getInstance(project).client().serviceAction(entry.name, verb)
+                LerdSiteService.getInstance(project).refresh()
+            }
+        }
+
+        private fun sitePath(): String? = LerdSiteService.getInstance(project).state.site?.path
+
+        private fun action(text: String, icon: Icon, run: () -> Unit): AnAction =
             object : AnAction(text, null, icon) {
                 override fun getActionUpdateThread(): ActionUpdateThread = ActionUpdateThread.BGT
-
-                override fun actionPerformed(e: AnActionEvent) {
-                    if (runtime.kind == SiteRuntime.Kind.SERVICE) {
-                        AppExecutorUtil.getAppExecutorService().execute {
-                            LerdSiteService.getInstance(project).client().serviceAction(runtime.name, verb)
-                            LerdSiteService.getInstance(project).refresh()
-                        }
-                    } else {
-                        SiteAction.run(project, verb)
-                    }
-                }
+                override fun actionPerformed(e: AnActionEvent) = run()
             }
-
-        private fun state(): String = when {
-            runtime.failing -> "failed"
-            runtime.running -> "running"
-            else -> "stopped"
-        }
-
-        private fun icon(): Icon = when {
-            runtime.failing -> AllIcons.General.Error
-            runtime.running -> AllIcons.RunConfigurations.TestState.Run
-            else -> AllIcons.RunConfigurations.TestIgnored
-        }
     }
 }
