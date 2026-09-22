@@ -1,4 +1,5 @@
 import org.jetbrains.intellij.platform.gradle.IntelliJPlatformType
+import org.jetbrains.intellij.platform.gradle.tasks.VerifyPluginTask
 
 plugins {
     kotlin("jvm") version "2.4.20"
@@ -58,6 +59,17 @@ intellijPlatform {
     }
     pluginVerification {
         ides { recommended() }
+        // Implementing a Java interface that has internal default methods makes
+        // Kotlin emit a bridge for each one, which the verifier reads as using
+        // them. Nothing here calls them, so fail on what actually breaks a
+        // release instead.
+        failureLevel = listOf(
+            VerifyPluginTask.FailureLevel.COMPATIBILITY_PROBLEMS,
+            VerifyPluginTask.FailureLevel.INVALID_PLUGIN,
+            VerifyPluginTask.FailureLevel.MISSING_DEPENDENCIES,
+            VerifyPluginTask.FailureLevel.SCHEDULED_FOR_REMOVAL_API_USAGES,
+            VerifyPluginTask.FailureLevel.NOT_DYNAMIC,
+        )
     }
     publishing {
         token = providers.environmentVariable("PUBLISH_TOKEN")

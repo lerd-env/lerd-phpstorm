@@ -73,8 +73,16 @@ class LogsPanel(private val project: Project) : JPanel(BorderLayout()), Disposab
             LerdLogFilter(project) { LerdSiteService.getInstance(project).state.site?.path },
         )
 
-        picker.renderer = SimpleListCellRenderer.create<LogSource> { label, value, _ ->
-            label.text = value?.label.orEmpty()
+        picker.renderer = object : SimpleListCellRenderer<LogSource>() {
+            override fun customize(
+                list: javax.swing.JList<out LogSource>,
+                value: LogSource?,
+                index: Int,
+                selected: Boolean,
+                hasFocus: Boolean,
+            ) {
+                text = value?.label.orEmpty()
+            }
         }
         picker.addActionListener {
             if (!selecting) (picker.selectedItem as? LogSource)?.let(::attach)
