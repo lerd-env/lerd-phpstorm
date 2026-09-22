@@ -1,0 +1,47 @@
+<idea-plugin>
+    <id>sh.lerd.ide</id>
+    <name>Lerd</name>
+    <vendor email="george@dumitres.co" url="https://lerd.sh">Lerd</vendor>
+
+    <description><![CDATA[
+        Manage the <a href="https://lerd.sh">Lerd</a> local PHP environment from the IDE.
+        The project you have open resolves to its Lerd site, and its logs, PHP version,
+        workers and services come with it.
+    ]]></description>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.jetbrains.php</depends>
+    <depends>org.jetbrains.plugins.terminal</depends>
+    <depends>com.intellij.database</depends>
+
+    <resource-bundle>messages.LerdBundle</resource-bundle>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <applicationService serviceImplementation="sh.lerd.ide.settings.LerdSettings"/>
+        <statusBarWidgetFactory id="sh.lerd.ide.StatusWidget"
+                                implementation="sh.lerd.ide.widget.LerdStatusWidgetFactory"
+                                order="first"/>
+        <postStartupActivity implementation="sh.lerd.ide.site.LerdStartupActivity"/>
+        <notificationGroup id="Lerd" displayType="BALLOON"/>
+        <toolWindow id="Lerd" anchor="bottom" canCloseContents="true"
+                    factoryClass="sh.lerd.ide.toolwindow.LerdToolWindowFactory"/>
+        <projectConfigurable instance="sh.lerd.ide.settings.LerdConfigurable"
+                             id="sh.lerd.ide.settings"
+                             displayName="Lerd"
+                             parentId="tools"
+                             nonDefaultProject="true"/>
+    </extensions>
+    <actions>
+        <group id="sh.lerd.ide.MenuGroup" text="Lerd" popup="true">
+            <action id="sh.lerd.ide.OpenSite" class="sh.lerd.ide.actions.OpenSiteAction"/>
+            <action id="sh.lerd.ide.RestartSite" class="sh.lerd.ide.actions.RestartSiteAction"/>
+            <separator/>
+            <action id="sh.lerd.ide.RunCommand" class="sh.lerd.ide.actions.RunCommandAction">
+                <keyboard-shortcut first-keystroke="control alt L" keymap="$default"/>
+            </action>
+            <separator/>
+            <action id="sh.lerd.ide.OpenDashboard" class="sh.lerd.ide.actions.OpenDashboardAction"/>
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </group>
+    </actions>
+</idea-plugin>

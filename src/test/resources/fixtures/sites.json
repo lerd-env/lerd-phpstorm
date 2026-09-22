@@ -1,0 +1,38 @@
+[
+  {
+    "name": "myapp",
+    "domain": "myapp.test",
+    "domains": ["myapp.test", "admin.myapp.test"],
+    "path": "/home/dev/Code/myapp",
+    "php_version": "8.4",
+    "node_version": "22",
+    "runtime": "fpm",
+    "tls": true,
+    "fpm_running": true,
+    "framework": "laravel",
+    "framework_label": "Laravel 12",
+    "services": ["mysql", "redis"],
+    "framework_workers": [
+      { "name": "queue", "label": "Queue", "running": true },
+      { "name": "schedule", "label": "Scheduler", "running": false, "failing": true }
+    ],
+    "worktrees": [
+      {
+        "branch": "feature/checkout",
+        "domain": "feature-checkout.myapp.test",
+        "path": "/home/dev/Code/myapp-worktrees/feature-checkout",
+        "php_version": "8.4",
+        "db_isolated": true,
+        "framework_workers": [{ "name": "queue", "running": false }]
+      }
+    ],
+    "a_key_this_plugin_has_never_heard_of": { "nested": true }
+  },
+  {
+    "name": "blog",
+    "domain": "blog.test",
+    "path": "/home/dev/Code/blog",
+    "php_version": "8.3",
+    "paused": true
+  }
+]

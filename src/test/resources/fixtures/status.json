@@ -1,0 +1,14 @@
+{
+  "dns": { "running": true },
+  "nginx": { "running": true },
+  "php_fpms": [
+    { "version": "8.4", "running": true },
+    { "version": "8.3", "running": false }
+  ],
+  "php_default": "8.4",
+  "node_default": "22",
+  "watcher_running": true,
+  "home": "/home/dev",
+  "instance": "b1cc30dd",
+  "some_future_field": 7
+}
