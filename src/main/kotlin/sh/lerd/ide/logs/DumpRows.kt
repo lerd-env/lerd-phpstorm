@@ -41,14 +41,24 @@ object DumpRows {
         kind: String? = null,
         search: String = "",
         includeTests: Boolean = false,
-    ): List<DumpRow> = events
+    ): List<DumpRow> = eventsOf(events, kind, search, includeTests).map(::row)
+
+    /**
+     * The same selection as [of], as events, so a caller that needs the payload
+     * behind a row does not have to match them up again.
+     */
+    fun eventsOf(
+        events: List<DumpEvent>,
+        kind: String? = null,
+        search: String = "",
+        includeTests: Boolean = false,
+    ): List<DumpEvent> = events
         .filter { includeTests || !it.ctx.test }
         .filter { kind == null || it.kind == kind }
         .sortedByDescending { it.ts }
-        .map(::row)
-        .filter { matches(it, search) }
+        .filter { matches(row(it), search) }
 
-    private fun row(event: DumpEvent): DumpRow {
+    fun row(event: DumpEvent): DumpRow {
         val body = event.text.orEmpty()
         return DumpRow(
             title = title(event, body),

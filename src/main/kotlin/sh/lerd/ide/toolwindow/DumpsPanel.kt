@@ -51,6 +51,7 @@ class DumpsPanel(private val project: Project) : JPanel(BorderLayout()), Disposa
     private var includeTests = false
     private var captured: List<sh.lerd.ide.api.DumpEvent> = emptyList()
     private var lenses: List<sh.lerd.ide.logs.DumpLens> = emptyList()
+    private var shown: List<sh.lerd.ide.api.DumpEvent> = emptyList()
     private var switching = false
 
     init {
@@ -186,7 +187,9 @@ class DumpsPanel(private val project: Project) : JPanel(BorderLayout()), Disposa
             }
         }
 
-        val next = DumpRows.of(captured, kind, search.text, includeTests)
+        val matching = DumpRows.eventsOf(captured, kind, search.text, includeTests)
+        shown = matching
+        val next = matching.map(DumpRows::row)
         (rows.model as CollectionListModel<DumpRow>).replaceAll(next)
         status.text = when {
             captured.isEmpty() -> "nothing captured yet - dump() something and load the site"
@@ -197,13 +200,27 @@ class DumpsPanel(private val project: Project) : JPanel(BorderLayout()), Disposa
     }
 
     private fun showSelected() {
-        val row = rows.selectedValue ?: return
+        val index = rows.selectedIndex.takeIf { it >= 0 } ?: return
+        val row = rows.model.getElementAt(index) ?: return
+        val event = shown.getOrNull(index)
         console.clear()
-        console.print("${row.kind}  ${row.where}  ${row.timestamp}\n", ConsoleViewContentType.SYSTEM_OUTPUT)
-        row.caller?.let {
-            console.print("${it.file}:${it.line}\n", ConsoleViewContentType.NORMAL_OUTPUT)
+        console.print("${row.kind}  ${row.where}  ${row.timestamp}\n\n", ConsoleViewContentType.SYSTEM_OUTPUT)
+
+        if (event == null) {
+            console.print(row.detail + "\n", ConsoleViewContentType.NORMAL_OUTPUT)
+            return
         }
-        console.print("\n${row.detail}\n", ConsoleViewContentType.NORMAL_OUTPUT)
+        sh.lerd.ide.logs.DumpDetail.of(event).forEach { line ->
+            console.print(line.text + "\n", contentType(line.style))
+        }
+    }
+
+    /** Vendor frames stay readable but recede; the app frames are the point. */
+    private fun contentType(style: sh.lerd.ide.logs.DumpDetail.Style): ConsoleViewContentType = when (style) {
+        sh.lerd.ide.logs.DumpDetail.Style.HEADING -> ConsoleViewContentType.SYSTEM_OUTPUT
+        sh.lerd.ide.logs.DumpDetail.Style.ORIGIN -> ConsoleViewContentType.ERROR_OUTPUT
+        sh.lerd.ide.logs.DumpDetail.Style.VENDOR_FRAME -> ConsoleViewContentType.SYSTEM_OUTPUT
+        else -> ConsoleViewContentType.NORMAL_OUTPUT
     }
 
     override fun dispose() = Unit
