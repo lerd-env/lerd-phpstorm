@@ -252,6 +252,7 @@ class LogsPanel(private val project: Project) : JPanel(BorderLayout()), Disposab
             (group.latest.detail ?: group.latest.message) + "\n",
             ConsoleViewContentType.NORMAL_OUTPUT,
         )
+        console.showFromTop()
     }
 
     private fun currentSource(): LogSource? = picker.selectedItem as? LogSource

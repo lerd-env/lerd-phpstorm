@@ -184,6 +184,7 @@ class QueryIssuesPanel(private val project: Project) : JPanel(BorderLayout()), D
             console.print("${it.file}:${it.line}\n", ConsoleViewContentType.NORMAL_OUTPUT)
         }
         console.print("\n${finding.detail}\n", ConsoleViewContentType.NORMAL_OUTPUT)
+        console.showFromTop()
     }
 
     override fun dispose() = Unit

@@ -211,11 +211,13 @@ class DumpsPanel(private val project: Project) : JPanel(BorderLayout()), Disposa
 
         if (event == null) {
             console.print(row.detail + "\n", ConsoleViewContentType.NORMAL_OUTPUT)
+            console.showFromTop()
             return
         }
         sh.lerd.ide.logs.DumpDetail.of(event).forEach { line ->
             console.print(line.text + "\n", contentType(line.style))
         }
+        console.showFromTop()
     }
 
     /** Vendor frames stay readable but recede; the app frames are the point. */
