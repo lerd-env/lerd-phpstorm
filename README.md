@@ -4,6 +4,8 @@
 > logs, its PHP version, its workers, its services, its queries and everything
 > it dumped, without a browser tab.
 
+[![JetBrains Marketplace](https://img.shields.io/jetbrains/plugin/v/34420-lerd?label=Marketplace&color=ff2d20)](https://plugins.jetbrains.com/plugin/34420-lerd)
+[![Downloads](https://img.shields.io/jetbrains/plugin/d/34420-lerd?color=ff2d20)](https://plugins.jetbrains.com/plugin/34420-lerd)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![PhpStorm](https://img.shields.io/badge/PhpStorm-2025.2%2B-000?logo=phpstorm)](https://www.jetbrains.com/phpstorm/)
 [![lerd](https://img.shields.io/badge/lerd-lerd.sh-ff2d20)](https://lerd.sh)
@@ -104,7 +106,12 @@ token, no daemon of its own.
 
 ## Install
 
-From the JetBrains Marketplace, or build it yourself:
+In PhpStorm, **Settings > Plugins > Marketplace**, search for **Lerd**, install,
+restart. Or from the listing directly:
+
+**[plugins.jetbrains.com/plugin/34420-lerd](https://plugins.jetbrains.com/plugin/34420-lerd)**
+
+To run a build of your own instead:
 
 ```sh
 ./install-local.sh
