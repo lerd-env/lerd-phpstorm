@@ -22,7 +22,31 @@ object FileLineMatcher {
         """([\w./\-@]*[\w\-@]+\.([A-Za-z]+))(?:\((\d+)\)|:(\d+))""",
     )
 
-    fun find(text: String): List<Hit> = PATTERN.findAll(text).mapNotNull { match ->
+    private val BARE_PATTERN = Regex("""([\w./\-@]*[\w\-@]+\.([A-Za-z]+))""")
+
+    /**
+     * Line-numbered references first, then bare paths for the events that name
+     * a file and nothing else, such as a view render. A bare match must contain
+     * a directory separator, so a file name mentioned in prose stays prose, and
+     * must not sit inside a URL.
+     */
+    fun find(text: String): List<Hit> {
+        val located = withLines(text)
+        val taken = located.map { it.start until it.end }
+        return (located + bare(text).filterNot { hit -> taken.any { hit.start in it } })
+            .sortedBy { it.start }
+    }
+
+    private fun bare(text: String): List<Hit> = BARE_PATTERN.findAll(text).mapNotNull { match ->
+        val path = match.groupValues[1]
+        if (!path.contains('/')) return@mapNotNull null
+        if (match.groupValues[2].lowercase() !in EXTENSIONS) return@mapNotNull null
+        // Inside a URL the slashes are not a filesystem path.
+        if (match.range.first > 0 && text[match.range.first - 1] == ':') return@mapNotNull null
+        Hit(path, 1, match.range.first, match.range.last + 1)
+    }.toList()
+
+    private fun withLines(text: String): List<Hit> = PATTERN.findAll(text).mapNotNull { match ->
         val path = match.groupValues[1]
         val extension = match.groupValues[2].lowercase()
         if (extension !in EXTENSIONS) return@mapNotNull null

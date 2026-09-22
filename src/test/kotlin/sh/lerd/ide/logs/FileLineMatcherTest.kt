@@ -66,4 +66,40 @@ class FileLineMatcherTest {
     fun `ignores a line number that is absurd`() {
         assertTrue(FileLineMatcher.find("weird.php:99999999999").isEmpty())
     }
+
+    @Test
+    fun `a bare path with no line number still links`() {
+        // A view event names the template it rendered and nothing else.
+        val hit = FileLineMatcher.find("path: /home/dev/app/resources/views/app.blade.php").single()
+
+        assertEquals("/home/dev/app/resources/views/app.blade.php", hit.path)
+        assertEquals(1, hit.line)
+    }
+
+    @Test
+    fun `a relative bare path links too`() {
+        val hit = FileLineMatcher.find("rendered resources/views/mail/invoice.blade.php").single()
+
+        assertEquals("resources/views/mail/invoice.blade.php", hit.path)
+    }
+
+    @Test
+    fun `a bare file name in prose is still left alone`() {
+        // Without a directory it is a word, not a path.
+        assertTrue(FileLineMatcher.find("loaded config.php successfully").isEmpty())
+    }
+
+    @Test
+    fun `a url is not turned into a file link`() {
+        assertTrue(FileLineMatcher.find("GET http://myapp.test:7073/index.php took 4ms").isEmpty())
+        assertTrue(FileLineMatcher.find("posted to https://api.test/hooks/stripe.php").isEmpty())
+    }
+
+    @Test
+    fun `a path that already carries a line is not matched twice`() {
+        val hits = FileLineMatcher.find("at /home/dev/app/app/Repo.php:21")
+
+        assertEquals(1, hits.size)
+        assertEquals(21, hits.single().line)
+    }
 }
