@@ -23,6 +23,7 @@
                                 order="first"/>
         <postStartupActivity implementation="sh.lerd.ide.site.LerdStartupActivity"/>
         <notificationGroup id="Lerd" displayType="BALLOON"/>
+        <serviceViewContributor implementation="sh.lerd.ide.servicesview.LerdServiceViewContributor"/>
         <toolWindow id="Lerd" anchor="bottom" canCloseContents="true"
                     factoryClass="sh.lerd.ide.toolwindow.LerdToolWindowFactory"/>
         <projectConfigurable instance="sh.lerd.ide.settings.LerdConfigurable"
