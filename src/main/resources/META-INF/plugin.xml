@@ -4,10 +4,59 @@
     <vendor email="george@dumitres.co" url="https://lerd.sh">Lerd</vendor>
 
     <description><![CDATA[
-        Manage the <a href="https://lerd.sh">Lerd</a> local PHP environment from the IDE.
-        The project you have open resolves to its Lerd site, and its logs, PHP version,
-        workers and services come with it.
+        <p>Manage your <a href="https://lerd.sh">Lerd</a> local PHP environment from the IDE.
+        The project you open resolves to exactly one Lerd site, and its logs, PHP version,
+        workers, services, queries and dumps come with it, without a browser tab.</p>
+
+        <h3>In the status bar</h3>
+        <p>The site's domain and PHP version, greyed out when Lerd is stopped and not drawn
+        at all for a project Lerd does not know. Click it to open the site, restart it,
+        turn HTTPS on or off, pause it, switch PHP version or open the dashboard.</p>
+
+        <h3>In the tool window</h3>
+        <ul>
+            <li><b>Site</b> &mdash; domain, framework, branch and path, the PHP and Node
+            version pickers, a toggle per worker and a row per service, laid out in columns
+            that reflow as the window narrows. Services open in the IDE's own Database tool
+            window on this site's database, or as a client shell.</li>
+
+            <li><b>Logs</b> &mdash; a framework log collapsed into one row per distinct
+            error with how often it happened, and a live tail for PHP-FPM, every worker,
+            every service and nginx. Both are IDE consoles, so a path in a stack trace is
+            one click from the line that threw it.</li>
+
+            <li><b>N+1 &amp; Slow</b> &mdash; the queries worth fixing, read from real
+            captured traffic rather than from the code, worst first, each linked to the
+            application line it came from and openable as a runnable SQL scratch.</li>
+
+            <li><b>Dumps</b> &mdash; everything the site captured, split into the lenses the
+            dashboard uses: dumps, queries, jobs, views, mail, cache, events, HTTP, logs,
+            exceptions and messages. Stack traces are read rather than printed, with the
+            first frame outside <code>vendor/</code> pulled to the top.</li>
+        </ul>
+
+        <h3>Elsewhere in the IDE</h3>
+        <p>The site's containers appear in the Services window with a terminal and a log to
+        follow. The PHP language level, the CLI interpreter and the PHP server entry for
+        Xdebug all follow whatever Lerd serves the site with.</p>
+
+        <p>Everything happens over loopback to the Lerd already running as your user. No
+        account, no token, no telemetry, and nothing contacted but your own machine.</p>
+
+        <p>Requires <a href="https://lerd.sh">Lerd</a> running on the same machine.</p>
     ]]></description>
+
+    <change-notes><![CDATA[
+        <h3>0.1.0</h3>
+        <p>First release.</p>
+        <ul>
+            <li>Status bar widget with the site's domain, PHP version and quick actions</li>
+            <li>Site, Logs, N+1 &amp; Slow and Dumps in one tool window</li>
+            <li>Containers in the Services window, with a terminal into each</li>
+            <li>PHP language level, CLI interpreter and Xdebug server follow the site</li>
+            <li>Git worktrees resolve to their parent site plus the branch</li>
+        </ul>
+    ]]></change-notes>
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.jetbrains.php</depends>
