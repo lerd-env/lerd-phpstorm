@@ -204,7 +204,10 @@ class DumpsPanel(private val project: Project) : JPanel(BorderLayout()), Disposa
         val row = rows.model.getElementAt(index) ?: return
         val event = shown.getOrNull(index)
         console.clear()
-        console.print("${row.kind}  ${row.where}  ${row.timestamp}\n\n", ConsoleViewContentType.SYSTEM_OUTPUT)
+        console.print(
+            listOf(row.kind, row.where, row.timestamp).filter { it.isNotBlank() }.joinToString("  ") + "\n\n",
+            ConsoleViewContentType.SYSTEM_OUTPUT,
+        )
 
         if (event == null) {
             console.print(row.detail + "\n", ConsoleViewContentType.NORMAL_OUTPUT)
@@ -253,6 +256,17 @@ class DumpsPanel(private val project: Project) : JPanel(BorderLayout()), Disposa
                 },
             )
             row.add(text, BorderLayout.CENTER)
+            sh.lerd.ide.logs.DumpTimes.short(value.timestamp).takeIf { it.isNotBlank() }?.let { at ->
+                row.add(
+                    JBLabel(at).apply {
+                        foreground = JBColor.GRAY
+                        font = JBUI.Fonts.smallFont()
+                        border = JBUI.Borders.emptyLeft(8)
+                        verticalAlignment = javax.swing.SwingConstants.TOP
+                    },
+                    BorderLayout.EAST,
+                )
+            }
             return row
         }
     }
