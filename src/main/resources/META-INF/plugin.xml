@@ -25,6 +25,7 @@
         <notificationGroup id="Lerd" displayType="BALLOON"/>
         <serviceViewContributor implementation="sh.lerd.ide.servicesview.LerdServiceViewContributor"/>
         <toolWindow id="Lerd" anchor="bottom" canCloseContents="true"
+                    icon="sh.lerd.ide.LerdIcons.ToolWindow"
                     factoryClass="sh.lerd.ide.toolwindow.LerdToolWindowFactory"/>
         <projectConfigurable instance="sh.lerd.ide.settings.LerdConfigurable"
                              id="sh.lerd.ide.settings"

@@ -14,6 +14,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.ui.components.JBLabel
 import com.intellij.util.concurrency.AppExecutorUtil
 import com.intellij.util.ui.JBUI
+import sh.lerd.ide.LerdIcons
 import sh.lerd.ide.actions.SiteAction
 import sh.lerd.ide.api.LerdResult
 import sh.lerd.ide.site.LerdSiteService
@@ -33,7 +34,7 @@ import javax.swing.JPanel
 class LerdServiceViewContributor : ServiceViewContributor<SiteRuntime> {
 
     override fun getViewDescriptor(project: Project): ServiceViewDescriptor =
-        SimpleServiceViewDescriptor("Lerd", AllIcons.Nodes.Services)
+        SimpleServiceViewDescriptor("Lerd", LerdIcons.ToolWindow)
 
     override fun getServices(project: Project): List<SiteRuntime> {
         val state = LerdSiteService.getInstance(project).state
