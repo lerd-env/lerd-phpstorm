@@ -8,6 +8,7 @@ import com.intellij.openapi.startup.ProjectActivity
 import sh.lerd.ide.php.PhpInterpreterSync
 import sh.lerd.ide.php.PhpLevelSync
 import sh.lerd.ide.php.PhpServerSync
+import sh.lerd.ide.php.XdebugListenSync
 import sh.lerd.ide.settings.LerdSettings
 
 /**
@@ -32,6 +33,7 @@ class LerdStartupActivity : ProjectActivity {
         PhpLevelSync.apply(project, service.state)
         PhpInterpreterSync.apply(project, service.state)
         PhpServerSync.apply(project, service.state)
+        XdebugListenSync.install(project, service)
 
         val connection = project.messageBus.connect()
         connection.subscribe(

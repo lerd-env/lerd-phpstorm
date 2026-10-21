@@ -42,6 +42,15 @@ class LerdClientTest {
             seen += ex
             respond(ex, 500, "something went wrong\n", "text/plain")
         }
+        server.createContext("/api/xdebug/") { ex ->
+            seen += ex
+            val body = if (ex.requestURI.path.startsWith("/api/xdebug/8.9/")) {
+                """{"ok":false,"error":"php 8.9 is not installed"}"""
+            } else {
+                """{"ok":true,"xdebug_enabled":true}"""
+            }
+            respond(ex, 200, body)
+        }
         server.start()
         client = LerdClient { "http://127.0.0.1:${server.address.port}" }
     }
@@ -109,5 +118,21 @@ class LerdClientTest {
         offline.close()
 
         assertTrue(result is LerdResult.Err)
+    }
+
+    @Test
+    fun `xdebug posts on or off for the version`() {
+        assertTrue(client.xdebug("8.4", true) is LerdResult.Ok)
+        assertTrue(client.xdebug("8.4", false) is LerdResult.Ok)
+
+        assertEquals(listOf("/api/xdebug/8.4/on", "/api/xdebug/8.4/off"), seen.map { it.requestURI.path })
+        assertTrue(seen.all { it.requestMethod == "POST" && it.requestHeaders.getFirst("X-Lerd-CSRF") == "1" })
+    }
+
+    @Test
+    fun `an xdebug toggle lerd refuses is an error`() {
+        val result = client.xdebug("8.9", true)
+
+        assertEquals("php 8.9 is not installed", (result as LerdResult.Err).message)
     }
 }

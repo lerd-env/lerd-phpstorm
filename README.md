@@ -96,6 +96,12 @@ a project Lerd does not know.
   runs the site, and a language level changed in the IDE is an inspection
   setting, not a reason to rebuild a container.
 
+- 🐞 **Xdebug follows the phone icon.** Listen for PHP Debug Connections turns
+  Xdebug on for the site's PHP version,
+  while stopping it or closing the project turns it off again. The switch is
+  per version in Lerd, so every site on that version follows, and each one
+  restarts that version's PHP-FPM.
+
 - 🌳 **Worktrees are first class.** Open a git worktree as its own project and
   it resolves to its parent site plus the branch, with its own units and logs.
 

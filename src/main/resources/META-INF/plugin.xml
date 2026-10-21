@@ -39,6 +39,8 @@
         <p>The site's containers appear in the Services window with a terminal and a log to
         follow. The PHP language level, the CLI interpreter and the PHP server entry for
         Xdebug all follow whatever Lerd serves the site with.</p>
+        <p>Listen for PHP Debug Connections turns Lerd's Xdebug on for the
+        site's PHP version, and stopping it or closing the project turns it off.</p>
 
         <p>Everything happens over loopback to the Lerd already running as your user. No
         account, no token, no telemetry, and nothing contacted but your own machine.</p>

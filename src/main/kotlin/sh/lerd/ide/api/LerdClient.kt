@@ -87,6 +87,15 @@ class LerdClient(
     fun serviceAction(name: String, action: String): LerdResult<Unit> =
         post("/api/services/${encode(name)}/$action", emptyMap()) { }
 
+    /** Turns Xdebug on or off for a PHP version; lerd restarts that version's FPM. */
+    fun xdebug(version: String, enabled: Boolean): LerdResult<Unit> {
+        val path = "/api/xdebug/${encode(version)}/${if (enabled) "on" else "off"}"
+        return post(path, emptyMap()) { body ->
+            val parsed = runCatching { LerdJson.format.decodeFromString<SiteActionResponse>(body) }.getOrNull()
+            if (parsed != null && !parsed.ok) throw LerdApiException(parsed.error ?: "the toggle failed")
+        }
+    }
+
     fun appLogFiles(domain: String, branch: String? = null): LerdResult<List<AppLogFile>> =
         get("/api/app-logs/${encode(domain)}", branch.asParams()) {
             LerdJson.format.decodeFromString<AppLogFilesResponse>(it).files
